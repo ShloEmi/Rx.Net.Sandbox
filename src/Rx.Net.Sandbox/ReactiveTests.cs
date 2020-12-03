@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
+
+using FluentAssertions;
 
 using NUnit.Framework;
 
@@ -32,39 +35,19 @@ namespace Rx.Net.Sandbox
                 () => isCompleted = true);
 
 
-            Assert.AreEqual(count, received.Count);
-            Assert.AreEqual(null, lastException);
-            Assert.AreEqual(true, isCompleted);
-
-            for (var i = 0; i < count; i++)
-                Assert.AreEqual(i+start, received[i]);
+            lastException.Should().BeNull();
+            isCompleted.Should().BeTrue();
+            received.Should()
+                .HaveCount(count).And
+                .ContainInOrder(Enumerable.Range(start, count));
         }
 
         [Test]
         public void Observable_OnNext__WithTwoSubscribers__ExpectedEventsReceived()
         {
-            var whatsTheMeaningOfLife = "What's the meaning of life?";
-
-            IObservable<string> source = Observable.Create<string>(
-                o =>
-                {
-                    o.OnNext(whatsTheMeaningOfLife);
-                    o.OnNext("42");
-                    return o.OnCompleted;
-                }
-            );
-            
-            List<string> received = new List<string>();
-            source.Subscribe(s => received.Add(s));
-            Assert.AreEqual(2, received.Count);
-            Assert.AreEqual(whatsTheMeaningOfLife, received[0]);
-            Assert.AreEqual("42", received[1]);
-
-            List<string> received2 = new List<string>();
-            source.Subscribe(s => received2.Add(s));
-            Assert.AreEqual(2, received2.Count);
-            Assert.AreEqual(whatsTheMeaningOfLife, received2[0]);
-            Assert.AreEqual("42", received2[1]);
+            int[] ints = {1, 3, 1, 4};
+            var source = Observable.For<int, int>(ints, i => new Subject<int>());
+            Assert.Fail("TBC");
         }
     }
 }
