@@ -110,5 +110,53 @@ namespace Rx.Net.Sandbox
                 .HaveCount(3);
 
         }
+
+        [Ignore("Shlomi, TBC - unexpected behaviour!")]
+        [Test]
+        public void ToObservable__SomeCollection__SubscriberGotSameCollection2()
+        {
+            var scheduler = new TestScheduler();
+            var collection = new List<int> {1, 2, 3};
+            var actual = new List<int>();
+
+            //act
+            IObservable<int> collectionObservable = collection.ToObservable(scheduler);
+
+            using IDisposable subscriber1 = collectionObservable.Subscribe(i => actual.Add(i));
+            scheduler.Start();
+            actual.Should().ContainInOrder(collection);
+
+            Assert.Fail("Shlomi, TBC - unexpected behaviour!");
+            actual.Clear();
+            using IDisposable subscriber2 = collectionObservable.Subscribe(i => actual.Add(i));
+            scheduler.Start();
+            actual.Should().ContainInOrder(collection);
+
+        }
+
+        [Test]
+        public void Dispose__TimeTicksAfterDisposedSubscriber__SubscriberShouldNotGetOnNextEvents()
+        {
+            var scheduler = new TestScheduler();
+            var collection = Enumerable.Range(1, 100).ToArray();
+            var actual = new List<int>();
+
+
+            var collectionObservable = collection.ToObservable(scheduler);
+
+            var ticks = 10;
+            using (IDisposable subscriber = collectionObservable.Subscribe(i => actual.Add(i)))
+                scheduler.AdvanceTo(ticks);
+            //act - disposing subscriber
+
+            actual.Should()
+                .ContainInOrder(Enumerable.Range(1, ticks)).And
+                .HaveCount(ticks);
+
+            scheduler.AdvanceBy(10);
+            actual.Should()
+                .ContainInOrder(Enumerable.Range(1, ticks)).And
+                .HaveCount(ticks);
+        }
     }
 }
