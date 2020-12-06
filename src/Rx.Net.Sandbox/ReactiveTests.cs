@@ -180,7 +180,7 @@ namespace Rx.Net.Sandbox
             var actual = new List<int>();
 
             var ticks = 10;
-            //act - disposing subscriber
+            //act
             using IDisposable subscriber = intMessagesObservable.IntMessages(scheduler)
                 .Subscribe(i => actual.Add(i));
             scheduler.AdvanceTo(ticks);
@@ -190,6 +190,27 @@ namespace Rx.Net.Sandbox
             actual.Should()
                 .ContainInOrder(Enumerable.Range(1, ticks)).And
                 .HaveCount(ticks);
+        }
+
+        [Test]
+        public void Subscribe__UsingTestScheduler_CreateColdObservable__ExpectingMessagesAccordingToTicks__Test()
+        {
+            var scheduler = new TestScheduler();
+            var actual = new List<int>();
+            var ticks = 20;
+
+            using var subscriber = scheduler.CreateColdObservable(
+                    new Recorded<Notification<int>>(10,Notification.CreateOnNext(1)), 
+                    new Recorded<Notification<int>>(20,Notification.CreateOnNext(2)), 
+                    new Recorded<Notification<int>>(30,Notification.CreateOnNext(3)))
+                .Subscribe(i => actual.Add(i));
+
+            //act
+            scheduler.AdvanceTo(ticks);
+
+            actual.Should()
+                .ContainInOrder(Enumerable.Range(1, 2)).And
+                .HaveCount(2);
         }
     }
 }
