@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Threading.Tasks;
 
 using FluentAssertions;
 
@@ -43,11 +44,18 @@ namespace Rx.Net.Sandbox
         }
 
         [Test]
-        public void Observable_OnNext__WithTwoSubscribers__ExpectedEventsReceived()
+        public async Task Observable_OnNext__WithTwoSubscribers__ExpectedEventsReceived()
         {
-            int[] ints = {1, 3, 1, 4};
-            var source = Observable.For<int, int>(ints, i => new Subject<int>());
-            Assert.Fail("TBC");
+            TimeSpan waitTimeSpan = TimeSpan.FromMilliseconds(10);
+            List<long> lastReported = new List<long>();
+
+            lastReported.Should().HaveCount(0);
+
+            //act
+            Observable.Interval(waitTimeSpan).Subscribe(l => lastReported.Add(l));
+
+            await Task.Delay(waitTimeSpan * 10);
+            lastReported.Should().HaveCountGreaterThan(0);
         }
     }
 }
