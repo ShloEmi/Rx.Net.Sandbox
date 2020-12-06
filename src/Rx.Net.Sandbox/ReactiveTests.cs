@@ -13,6 +13,7 @@ using Microsoft.Reactive.Testing;
 
 using NUnit.Framework;
 
+
 namespace Rx.Net.Sandbox
 {
     public class Tests
@@ -22,9 +23,9 @@ namespace Rx.Net.Sandbox
         {
         }
 
-        [TestCase(1,1)]
-        [TestCase(11,100)]
-        [TestCase(11,1_000)]
+        [TestCase(1, 1)]
+        [TestCase(11, 100)]
+        [TestCase(11, 1_000)]
         public void Observable_Range__Range__Expected_creates_an_observable_sequence__Test(int start, int count)
         {
             List<int> received = new List<int>(count);
@@ -82,7 +83,6 @@ namespace Rx.Net.Sandbox
             using IDisposable subscriber2 = collectionObservable.Subscribe(i => actual.Add(i));
             scheduler.Start();
             actual.Should().ContainInOrder(collection);
-
         }
 
         [Ignore("Shlomi, TBC - unexpected behaviour!")]
@@ -110,7 +110,6 @@ namespace Rx.Net.Sandbox
             actual.Should()
                 .ContainInOrder(collection).And
                 .HaveCount(3);
-
         }
 
         [Ignore("Shlomi, TBC - unexpected behaviour!")]
@@ -133,7 +132,6 @@ namespace Rx.Net.Sandbox
             using IDisposable subscriber2 = collectionObservable.Subscribe(i => actual.Add(i));
             scheduler.Start();
             actual.Should().ContainInOrder(collection);
-
         }
 
         [Test]
@@ -149,7 +147,7 @@ namespace Rx.Net.Sandbox
             var ticks = 10;
             using IDisposable subscriber = collectionObservable.Subscribe(i => actual.Add(i));
             scheduler.AdvanceTo(ticks);
-            
+
 
             //act - disposing subscriber
             subscriber.Dispose();
@@ -167,7 +165,7 @@ namespace Rx.Net.Sandbox
 
         public class IntMessagesObservable
         {
-            public IObservable<int> IntMessages(IScheduler scheduler = null) 
+            public IObservable<int> IntMessages(IScheduler scheduler = null)
                 => Observable.Range(1, 100, scheduler);
         }
 
@@ -184,8 +182,7 @@ namespace Rx.Net.Sandbox
             using IDisposable subscriber = intMessagesObservable.IntMessages(scheduler)
                 .Subscribe(i => actual.Add(i));
             scheduler.AdvanceTo(ticks);
-            
-            
+
 
             actual.Should()
                 .ContainInOrder(Enumerable.Range(1, ticks)).And
@@ -200,9 +197,9 @@ namespace Rx.Net.Sandbox
             var ticks = 20;
 
             using var subscriber = scheduler.CreateColdObservable(
-                    new Recorded<Notification<int>>(10,Notification.CreateOnNext(1)), 
-                    new Recorded<Notification<int>>(20,Notification.CreateOnNext(2)), 
-                    new Recorded<Notification<int>>(30,Notification.CreateOnNext(3)))
+                    new Recorded<Notification<int>>(10, Notification.CreateOnNext(1)),
+                    new Recorded<Notification<int>>(20, Notification.CreateOnNext(2)),
+                    new Recorded<Notification<int>>(30, Notification.CreateOnNext(3)))
                 .Subscribe(i => actual.Add(i));
 
             //act
@@ -211,6 +208,28 @@ namespace Rx.Net.Sandbox
             actual.Should()
                 .ContainInOrder(Enumerable.Range(1, 2)).And
                 .HaveCount(2);
+        }
+
+        [Test]
+        public void Subscribe__UsingTestScheduler_CreateColdObservable_And_Range__ExpectingMessagesAccordingToTicks__Test()
+        {
+            var scheduler = new TestScheduler();
+            var actual = new List<int>();
+            var ticks = 15;
+
+            using var subscriber = scheduler.CreateColdObservable(
+                    Enumerable.Range(1, 100)
+                        .Select(i => new Recorded<Notification<int>>(i, Notification.CreateOnNext(i)))
+                        .ToArray()
+                )
+                .Subscribe(i => actual.Add(i));
+
+            //act
+            scheduler.AdvanceTo(ticks);
+
+            actual.Should()
+                .ContainInOrder(Enumerable.Range(1, ticks)).And
+                .HaveCount(ticks);
         }
     }
 }
