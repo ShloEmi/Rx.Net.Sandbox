@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Concurrency;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
@@ -230,6 +231,27 @@ namespace Rx.Net.Sandbox
             actual.Should()
                 .ContainInOrder(Enumerable.Range(1, ticks)).And
                 .HaveCount(ticks);
+        }
+
+        [Test]
+        public void Subscribe__StringAsStreamOfChars__ExpectingMessagesAccordingToTicks__Test()
+        {
+            var scheduler = new TestScheduler();
+            var actual = new List<char>();
+            var ticks = 5;
+
+            var stringStream = "gw5tn45ty13g4n9eghwe98t134tr5y";
+            using var subscriber = stringStream
+                .ToObservable(scheduler)
+                .Where(c => c >= 'a' && c <= 'z')
+                .Subscribe(c => actual.Add(c));
+
+            //act
+            scheduler.AdvanceTo(ticks);
+
+            actual.Should()
+                .HaveCountLessOrEqualTo(ticks);
+
         }
     }
 }
