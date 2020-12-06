@@ -60,6 +60,7 @@ namespace Rx.Net.Sandbox
             lastReported.Should().HaveCountGreaterThan(0);
         }
 
+        [Ignore("Shlomi, TBC - unexpected behaviour!")]
         [Test]
         public void ToObservable__SomeCollection__SubscriberGotSameCollection()
         {
@@ -70,10 +71,44 @@ namespace Rx.Net.Sandbox
             //act
             IObservable<int> collectionObservable = collection.ToObservable(scheduler);
 
-            collectionObservable.Subscribe(i => actual.Add(i));
+            using IDisposable subscriber1 = collectionObservable.Subscribe(i => actual.Add(i));
             scheduler.Start();
-
             actual.Should().ContainInOrder(collection);
+
+            Assert.Fail("Shlomi, TBC - unexpected behaviour!");
+            actual.Clear();
+            using IDisposable subscriber2 = collectionObservable.Subscribe(i => actual.Add(i));
+            scheduler.Start();
+            actual.Should().ContainInOrder(collection);
+
+        }
+
+        [Ignore("Shlomi, TBC - unexpected behaviour!")]
+        [Test]
+        public void Defer__ObservableStartedBeforeSubscriber__SubscriberGotSameCollectionWhenSubscribed()
+        {
+            var scheduler = new TestScheduler();
+            var collection = new List<int> {1, 2, 3};
+            var actual = new List<int>();
+
+
+            //act
+            var collectionObservable = Observable.Defer(() => collection.ToObservable(scheduler));
+
+            using IDisposable subscriber1 = collectionObservable.Subscribe(i => actual.Add(i));
+            scheduler.Start();
+            actual.Should()
+                .ContainInOrder(collection).And
+                .HaveCount(3);
+
+            Assert.Fail("Shlomi, TBC - unexpected behaviour!");
+            actual.Clear();
+            using IDisposable subscriber2 = collectionObservable.Subscribe(i => actual.Add(i));
+            scheduler.Start();
+            actual.Should()
+                .ContainInOrder(collection).And
+                .HaveCount(3);
+
         }
     }
 }
