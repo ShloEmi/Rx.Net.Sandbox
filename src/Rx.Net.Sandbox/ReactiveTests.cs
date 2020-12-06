@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
 using System.Threading.Tasks;
 
 using FluentAssertions;
@@ -23,7 +22,7 @@ namespace Rx.Net.Sandbox
         [TestCase(1,1)]
         [TestCase(11,100)]
         [TestCase(11,1_000)]
-        public void Observable_Range__Range__Expected_creates_an_observable_sequence(int start, int count)
+        public void Observable_Range__Range__Expected_creates_an_observable_sequence__Test(int start, int count)
         {
             List<int> received = new List<int>(count);
 
@@ -46,7 +45,7 @@ namespace Rx.Net.Sandbox
         }
 
         [Test]
-        public async Task Observable_OnNext__WithTwoSubscribers__ExpectedEventsReceived()
+        public async Task Observable_OnNext__WithTwoSubscribers__ExpectedEventsReceived__Test()
         {
             TimeSpan waitTimeSpan = TimeSpan.FromMilliseconds(10);
             List<long> lastReported = new List<long>();
@@ -62,7 +61,7 @@ namespace Rx.Net.Sandbox
 
         [Ignore("Shlomi, TBC - unexpected behaviour!")]
         [Test]
-        public void ToObservable__SomeCollection__SubscriberGotSameCollection()
+        public void ToObservable__SomeCollection__SubscriberGotSameCollection__Test()
         {
             var scheduler = new TestScheduler();
             var collection = new List<int> {1, 2, 3};
@@ -85,7 +84,7 @@ namespace Rx.Net.Sandbox
 
         [Ignore("Shlomi, TBC - unexpected behaviour!")]
         [Test]
-        public void Defer__ObservableStartedBeforeSubscriber__SubscriberGotSameCollectionWhenSubscribed()
+        public void Defer__ObservableStartedBeforeSubscriber__SubscriberGotSameCollectionWhenSubscribed__Test()
         {
             var scheduler = new TestScheduler();
             var collection = new List<int> {1, 2, 3};
@@ -113,7 +112,7 @@ namespace Rx.Net.Sandbox
 
         [Ignore("Shlomi, TBC - unexpected behaviour!")]
         [Test]
-        public void ToObservable__SomeCollection__SubscriberGotSameCollection2()
+        public void ToObservable__SomeCollection__SubscriberGotSameCollection2__Test()
         {
             var scheduler = new TestScheduler();
             var collection = new List<int> {1, 2, 3};
@@ -135,7 +134,7 @@ namespace Rx.Net.Sandbox
         }
 
         [Test]
-        public void Dispose__TimeTicksAfterDisposedSubscriber__SubscriberShouldNotGetOnNextEvents()
+        public void Dispose__TimeTicksAfterDisposedSubscriber__SubscriberShouldNotGetOnNextEvents__Test()
         {
             var scheduler = new TestScheduler();
             var collection = Enumerable.Range(1, 100).ToArray();
