@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Threading.Tasks;
 
 using FluentAssertions;
@@ -144,15 +147,46 @@ namespace Rx.Net.Sandbox
             var collectionObservable = collection.ToObservable(scheduler);
 
             var ticks = 10;
-            using (IDisposable subscriber = collectionObservable.Subscribe(i => actual.Add(i)))
-                scheduler.AdvanceTo(ticks);
+            using IDisposable subscriber = collectionObservable.Subscribe(i => actual.Add(i));
+            scheduler.AdvanceTo(ticks);
+            
+
             //act - disposing subscriber
+            subscriber.Dispose();
+
 
             actual.Should()
                 .ContainInOrder(Enumerable.Range(1, ticks)).And
                 .HaveCount(ticks);
 
             scheduler.AdvanceBy(10);
+            actual.Should()
+                .ContainInOrder(Enumerable.Range(1, ticks)).And
+                .HaveCount(ticks);
+        }
+
+        public class IntMessagesObservable
+        {
+            public IObservable<int> IntMessages(IScheduler scheduler = null) 
+                => Observable.Range(1, 100, scheduler);
+        }
+
+        [Test]
+        public void ClassWithObservable__SubscribeUsingClassObservable__ExpectingMessages__Test()
+        {
+            var intMessagesObservable = new IntMessagesObservable();
+            var scheduler = new TestScheduler();
+
+            var actual = new List<int>();
+
+            var ticks = 10;
+            //act - disposing subscriber
+            using IDisposable subscriber = intMessagesObservable.IntMessages(scheduler)
+                .Subscribe(i => actual.Add(i));
+            scheduler.AdvanceTo(ticks);
+            
+            
+
             actual.Should()
                 .ContainInOrder(Enumerable.Range(1, ticks)).And
                 .HaveCount(ticks);
