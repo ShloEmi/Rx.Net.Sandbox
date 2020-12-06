@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 
 using FluentAssertions;
 
+using Microsoft.Reactive.Testing;
+
 using NUnit.Framework;
 
 namespace Rx.Net.Sandbox
@@ -56,6 +58,22 @@ namespace Rx.Net.Sandbox
 
             await Task.Delay(waitTimeSpan * 10);
             lastReported.Should().HaveCountGreaterThan(0);
+        }
+
+        [Test]
+        public void ToObservable__SomeCollection__SubscriberGotSameCollection()
+        {
+            var scheduler = new TestScheduler();
+            var collection = new List<int> {1, 2, 3};
+            var actual = new List<int>();
+
+            //act
+            IObservable<int> collectionObservable = collection.ToObservable(scheduler);
+
+            collectionObservable.Subscribe(i => actual.Add(i));
+            scheduler.Start();
+
+            actual.Should().ContainInOrder(collection);
         }
     }
 }
