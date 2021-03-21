@@ -58,6 +58,52 @@ namespace Rx.Net.Sandbox
             observed.Count.Should().Be(0);
         }
 
+        [Test]
+        public void Interval__EveryTicks__Expected_SubscriberCalledWhenTimeTriggered()
+        {
+            List<long> observed = new List<long>();
+
+            var ts = new TestScheduler();
+            var period = 100;
+            IDisposable disposable = Observable.Interval(TimeSpan.FromTicks(period), ts).Subscribe(observed.Add);
+
+            ts.AdvanceTo(90);
+            observed.Count.Should().Be(0);
+
+            ts.AdvanceTo(111);
+            observed.Count.Should().Be(1);
+
+            ts.AdvanceTo(222);
+            observed.Count.Should().Be(2);
+
+            ts.AdvanceTo(2021);
+            observed.Count.Should().Be(2021 / period);
+        }
+
+        [Test]
+        public void Interval__Disposed__Expected_SubscriberCalledBeforeDisposedAndNotAfter()
+        {
+            List<long> observed = new List<long>();
+
+            var ts = new TestScheduler();
+            var period = 100;
+            IDisposable disposable = Observable.Interval(TimeSpan.FromTicks(period), ts).Subscribe(observed.Add);
+
+            ts.AdvanceTo(90);
+            observed.Count.Should().Be(0);
+
+            ts.AdvanceTo(111);
+            observed.Count.Should().Be(1);
+
+            disposable.Dispose();
+
+            ts.AdvanceTo(222);
+            observed.Count.Should().Be(1);
+
+            ts.AdvanceTo(2021);
+            observed.Count.Should().Be(1);
+        }
+
 
 
 
