@@ -104,6 +104,30 @@ namespace Rx.Net.Sandbox
             observed.Count.Should().Be(1);
         }
 
+        [Test]
+        public void TimeInterval__Ticks__Expected_SubscriberCalledWithTimeElapsedSinceStarted()
+        {
+            var observed = new List<TimeInterval<long>>();
+
+            var ts = new TestScheduler();
+            var period = 100;
+            IDisposable disposable = Observable.Interval(TimeSpan.FromTicks(period), ts)
+                .TimeInterval()
+                .Subscribe(observed.Add);
+
+            ts.AdvanceTo(90);
+            observed.Count.Should().Be(0);
+
+            ts.AdvanceTo(111);
+            observed.Count.Should().Be(1);
+            observed[0].Value.Should().Be(0);
+            observed[0].Interval.Should().BeGreaterOrEqualTo(TimeSpan.FromTicks(period));
+
+            ts.AdvanceTo(222);
+            observed.Count.Should().Be(2);
+            observed[1].Value.Should().Be(1);
+            observed[1].Interval.Should().BeGreaterOrEqualTo(TimeSpan.FromTicks(period)*2);
+        }
 
 
 
