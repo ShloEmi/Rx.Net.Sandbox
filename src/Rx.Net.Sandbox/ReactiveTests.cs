@@ -17,12 +17,49 @@ using NUnit.Framework;
 
 namespace Rx.Net.Sandbox
 {
+    [TestFixture]
     public class Tests
     {
         [SetUp]
         public void Setup()
         {
         }
+
+
+        [Test]
+        public void Timer__RegisteredForOnce__Expected_SubscriberCalledOnce()
+        {
+            List<long> observed = new List<long>();
+
+            var ts = new TestScheduler();
+            Observable.Timer(TimeSpan.FromTicks(10), ts).Subscribe(observed.Add);
+            ts.AdvanceTo(9);
+            observed.Count.Should().Be(0);
+            ts.AdvanceTo(11);
+            observed.Count.Should().Be(1);
+            ts.AdvanceTo(1111);
+            observed.Count.Should().Be(1);
+        }
+
+        [Test]
+        public void Timer__DisposedBeforeTriggered__Expected_SubscriberNotCalled()
+        {
+            List<long> observed = new List<long>();
+
+            var ts = new TestScheduler();
+            IDisposable disposable = Observable.Timer(TimeSpan.FromTicks(100), ts).Subscribe(observed.Add);
+            ts.AdvanceTo(90);
+            observed.Count.Should().Be(0);
+
+            disposable.Dispose();
+            ts.AdvanceTo(111);
+            observed.Count.Should().Be(0);
+            ts.AdvanceTo(1111);
+            observed.Count.Should().Be(0);
+        }
+
+
+
 
         [TestCase(1, 1)]
         [TestCase(11, 100)]
